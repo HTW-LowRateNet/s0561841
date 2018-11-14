@@ -21,11 +21,9 @@ public class HUHNPController {
 	final static Console console = new Console();
 	public static Boolean lock1 = true;
 
-	// create an instance of the serial communications class
-	final static Serial serial = SerialFactory.createInstance();
-	// create an instance of the Sender class
-	final static HUHNPSender sender = new HUHNPSender(serial);
-
+	final static Serial serial = SerialFactory.createInstance(); // create an instance of the serial communications
+																	// class
+	final static HUHNPSender sender = new HUHNPSender(serial);// create an instance of the Sender class
 	String address; // Current address of this node
 	boolean isCoordinator = false; // Is this node the coordinator in the current network?
 	List<String> neighbors; // List of known neighbors
@@ -55,8 +53,10 @@ public class HUHNPController {
 		console.promptForExit();
 
 		// create and register the serial data listener
-		Thread listener = new Thread(new SerialInputListener(serial));
-		listener.start();
+		Thread serialListener = new Thread(new SerialInputListener(serial));
+		Thread userInputListener = new Thread(new UserInputListener(this));
+		serialListener.start();
+		userInputListener.start();
 		
 		try {
 			// create serial config object
@@ -93,11 +93,9 @@ public class HUHNPController {
 			// continuous loop to keep the program running until the user terminates the
 			// program
 			while (console.isRunning()) {
-				
 
-				//sender.prepareForSending(new HUHNPMessage(MessageCode.ADDR, "testId", 2, 0, "Hello"));
 				try {
-
+					
 				} catch (IllegalStateException ex) {
 					ex.printStackTrace();
 				}
@@ -124,20 +122,23 @@ public class HUHNPController {
 	// TODO make thread wait until Sending OK. Interrupt if exception
 
 	private void configureModule() throws InterruptedException {
-		this.sendATCommand("AT+CFG=433000000,20,6,12,1,1,0,0,0,0,3000,8,4");
 		synchronized (lock1) {
+			this.sendATCommand("AT+CFG=433000000,20,6,12,1,1,0,0,0,0,3000,8,4");
 			lock1.wait();
 		}
 		System.out.println("Warten beendet :)");
 		this.requestPermanentAddress();
 	};
 
-	private synchronized void requestPermanentAddress() {
+	private void requestPermanentAddress() {
+		synchronized (lock1) {
 		this.address = AddressSpaces.createTemporaryNodeAddress();
-		this.sendATCommand("AT+ADDR=" + AddressSpaces.createTemporaryNodeAddress());
+		System.out.println("Set own temporary address: " + this.address);
+		this.sendATCommand("AT+ADDR=" + this.address);
+		}
 	};
 
-	private void sendATCommand(String command) {
+	protected void sendATCommand(String command) {
 		try {
 			serial.write(command);
 			serial.write('\r');
