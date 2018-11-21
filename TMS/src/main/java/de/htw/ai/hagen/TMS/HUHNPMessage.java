@@ -17,7 +17,7 @@ public class HUHNPMessage {
 
 	@Override
 	public String toString() {
-		return code + messageId + timeToLive + currentHops + payload;
+		return code +" "+ messageId +" "+ timeToLive +" "+ currentHops +" "+ payload;
 	}
 
 	
