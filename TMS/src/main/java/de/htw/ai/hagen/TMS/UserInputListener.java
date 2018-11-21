@@ -6,10 +6,10 @@ import com.pi4j.io.serial.Serial;
 
 public class UserInputListener implements Runnable {
 
-	private HUHNPController controller;
+	private HUHNPSender sender;
 
-	public UserInputListener(HUHNPController controller) {
-		this.controller = controller;
+	public UserInputListener(HUHNPSender sender) {
+		this.sender = sender;
 	}
 
 	@Override
@@ -19,7 +19,7 @@ public class UserInputListener implements Runnable {
 		while(inputreader.hasNext()) {
 		String userinput = inputreader.next() ;
 		System.out.println("User typed: " + userinput);
-		controller.sendATCommand(userinput);
+		sender.sendATCommand(userinput);
 		}
 		inputreader.close();
 		}
