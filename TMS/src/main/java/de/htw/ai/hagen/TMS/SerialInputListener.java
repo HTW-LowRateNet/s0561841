@@ -26,16 +26,11 @@ public class SerialInputListener implements Runnable {
 
 				// print out the data received to the console
 				try {
-					if (HUHNPInterpreter.parseIncomingData(event.getAsciiString())) {
-						HUHNPInterpreter.gotExpectedAnswerFromModule = true; // needs to be set to false after sending
-					}
 					synchronized (HUHNPController.lock1) {
-						if (HUHNPInterpreter.parseIncomingData(event.getAsciiString())) {
-							HUHNPInterpreter.gotExpectedAnswerFromModule = true; // needs to be set to false after
-																					// sending
-						}
-						System.out.println("[HEX DATA]   " + event.getHexByteString());
-						System.out.println("[ASCII DATA] " + event.getAsciiString());
+						System.out.println("[Serial input] " + event.getAsciiString());
+						HUHNPInterpreter.parseIncomingData(event.getAsciiString().toString());
+						//System.out.println("[HEX DATA]   " + event.getHexByteString());
+						
 						HUHNPController.lock1.notify();
 					}
 
