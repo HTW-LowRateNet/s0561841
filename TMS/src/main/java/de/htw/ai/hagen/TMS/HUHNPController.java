@@ -3,29 +3,22 @@ package de.htw.ai.hagen.TMS;
 import java.io.IOException;
 import java.util.List;
 
-import com.pi4j.io.serial.Baud;
-import com.pi4j.io.serial.DataBits;
-import com.pi4j.io.serial.FlowControl;
-import com.pi4j.io.serial.Parity;
 import com.pi4j.io.serial.Serial;
-import com.pi4j.io.serial.SerialConfig;
-import com.pi4j.io.serial.SerialDataEvent;
-import com.pi4j.io.serial.SerialDataEventListener;
 import com.pi4j.io.serial.SerialFactory;
-import com.pi4j.io.serial.SerialPort;
-import com.pi4j.io.serial.StopBits;
-import com.pi4j.util.CommandArgumentParser;
 import com.pi4j.util.Console;
 
 public class HUHNPController {
+	// Structural variables
 	final static Console console = new Console();
 	public static Boolean lock1 = true;
-
 	final static Serial serial = SerialFactory.createInstance(); // create an instance of the serial communications
-																	// class
 	final static HUHNPSender sender = new HUHNPSender(serial);// create an instance of the Sender class
+	final static SerialConfigurator configurator = new SerialConfigurator(serial, console);
+
+	// business logic variables
 	String address; // Current address of this node
-	boolean isCoordinator = false; // Is this node the coordinator in the current network?
+	static boolean isCoordinator = false; // Is this node the coordinator in the current network?
+	static boolean coordinatorIsPresent = false;
 	List<String> neighbors; // List of known neighbors
 	List<String> allNodesInNetwork; // If this node is coordinator, it should keep a record of all nodes currently
 									// in the network
@@ -43,113 +36,64 @@ public class HUHNPController {
 	 */
 	public void runHUHNPController(String[] args) throws InterruptedException, IOException {
 
-		// create Pi4J console wrapper/helper
-		// (This is a utility class to abstract some of the boilerplate code)
-
-		// print program title/header
 		console.title("<-- HUHN-P Project -->", "Technik Mobiler Systeme");
 
 		// allow for user to exit program using CTRL-C
 		console.promptForExit();
-
+		
+		//configure module
+		configurator.configureSerial(args);
+		
 		// create and register the serial data listener
 		Thread serialListener = new Thread(new SerialInputListener(serial));
-		Thread userInputListener = new Thread(new UserInputListener(this));
+		Thread userInputListener = new Thread(new UserInputListener(sender));
 		serialListener.start();
 		userInputListener.start();
-		
-		try {
-			// create serial config object
-			SerialConfig config = new SerialConfig();
 
-			// set default serial settings (device, baud rate, flow control, etc)
-			//
-			// by default, use the DEFAULT com port on the Raspberry Pi (exposed on GPIO
-			// header)
-			// NOTE: this utility method will determine the default serial port for the
-			// detected platform and board/model. For all Raspberry Pi models
-			// except the 3B, it will return "/dev/ttyAMA0". For Raspberry Pi
-			// model 3B may return "/dev/ttyS0" or "/dev/ttyAMA0" depending on
-			// environment configuration.
-			config.device(SerialPort.getDefaultPort()).baud(Baud._115200).dataBits(DataBits._8).parity(Parity.NONE)
-					.stopBits(StopBits._1).flowControl(FlowControl.NONE);
+		// start initial congfiguration of module and set own temporary address
+		sender.configureModule();
 
-			// parse optional command argument options to override the default serial
-			// settings.
-			if (args.length > 0) {
-				config = CommandArgumentParser.getSerialConfig(config, args);
-			}
 
-			// display connection details
-			console.box(" Connecting to: " + config.toString(),
-					" We are sending ASCII data on the serial port every 1 second.",
-					" Data received on serial port will be displayed below.");
+		// continuous loop to keep the program running until the user terminates the
+		// program
+		while (console.isRunning()) {
 
-			// open the default serial device/port with the configuration settings
-			serial.open(config);
-
-			this.configureModule();
-
-			// continuous loop to keep the program running until the user terminates the
-			// program
-			while (console.isRunning()) {
-
-				try {
+			if (isCoordinator) {
+				sender.sendCoordinatorKeepAlive();
+				Thread.sleep(5000);
+			} else {
+				if (coordinatorIsPresent) {
+					System.out.println("Coordinator is present.");
+					coordinatorIsPresent = false;
+					Thread.sleep(10000);
+				} else {
+					System.out.println("Missing Coordinator.");
+					for (int i = 0; i <= 6; i++) {
+						sender.discoverPANCoordinator();
+						Thread.sleep(1000);
+						if(coordinatorIsPresent) {break;}
+						}
+					if(!coordinatorIsPresent) {this.imTheCaptainNow();}
 					
-				} catch (IllegalStateException ex) {
-					ex.printStackTrace();
 				}
 
-				// wait 1 second before continuing
-				Thread.sleep(1000);
 			}
 
-		} catch (IOException ex) {
-			console.println(" ==>> SERIAL SETUP FAILED : " + ex.getMessage());
-			return;
+			try {
+
+			} catch (IllegalStateException ex) {
+				ex.printStackTrace();
+			}
+
+			// wait 1 second before continuing
+			Thread.sleep(1000);
 		}
 
 	}
 
-	// Helper functions
-	private synchronized void sendMessage(HUHNPMessage message) {
-//		sender.prepareForSending(message);
-//		while (HUHNPSender.preparedToSend == false) {
-//			wait();
-//			sender.sendMessage(message);
-//		}
+	protected void imTheCaptainNow() {
+		this.address = sender.setPermanentAddress("0000");
+		HUHNPController.isCoordinator = true;
 	}
-	// TODO make thread wait until Sending OK. Interrupt if exception
 
-	private void configureModule() throws InterruptedException {
-		synchronized (lock1) {
-			this.sendATCommand("AT+CFG=433000000,20,6,12,1,1,0,0,0,0,3000,8,4");
-			lock1.wait();
-		}
-		System.out.println("Warten beendet :)");
-		this.requestPermanentAddress();
-	};
-
-	private void requestPermanentAddress() {
-		synchronized (lock1) {
-		this.address = AddressSpaces.createTemporaryNodeAddress();
-		System.out.println("Set own temporary address: " + this.address);
-		this.sendATCommand("AT+ADDR=" + this.address);
-		}
-	};
-
-	protected void sendATCommand(String command) {
-		try {
-			serial.write(command);
-			serial.write('\r');
-			serial.write('\n');
-
-			// logging to console
-			System.out.println("Sent Command: " + command);
-		} catch (IllegalStateException | IOException e) {
-			System.out.println("Error sending AT command: " + command);
-			e.printStackTrace();
-		}
-
-	};
 }
