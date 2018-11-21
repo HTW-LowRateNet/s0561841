@@ -8,14 +8,26 @@ package de.htw.ai.hagen.TMS;
 public class HUHNPInterpreter {
 	
 	public static boolean gotExpectedAnswerFromModule = false;
+	private static HUHNPSender sender;
 	
-	public static boolean parseIncomingData(String data) {
-		
-		if (data.contains("AT, OK ")){
-			return true;
+	public HUHNPInterpreter(HUHNPSender sender) {
+		HUHNPInterpreter.sender = sender;
+	}
+	
+	public static void parseIncomingData(String data) {
+
+		if (data.contains("AT,OK")){
+			HUHNPSender.preparedToSend = true;
+			synchronized (HUHNPController.lock1) {
+				HUHNPController.lock1.notify();
+			}
 		}
-		
-		return false;
+		if (data.contains("ALIV")){
+			HUHNPController.coordinatorIsPresent = true;
+		}
+		if (data.contains("KDIS") && HUHNPController.isCoordinator ==true ){
+			sender.sendCoordinatorKeepAlive();
+		}
 	}
 
 }
