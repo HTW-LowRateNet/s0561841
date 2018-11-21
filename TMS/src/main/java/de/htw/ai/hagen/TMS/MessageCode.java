@@ -11,7 +11,9 @@ public enum MessageCode {
 	/** Code for a simple message */
 	MSSG("MSSG"),
 	/** Code for self-polling to detect address collision */
-	POLL("POLL");
+	POLL("POLL"),
+	/** Code for self-polling to detect address collision */
+	ALIV("ALIV");
 
 	protected String code;
 
