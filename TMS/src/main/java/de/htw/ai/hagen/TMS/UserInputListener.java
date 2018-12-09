@@ -6,9 +6,9 @@ import com.pi4j.io.serial.Serial;
 
 public class UserInputListener implements Runnable {
 
-	private HUHNPSender sender;
+	private SimpleSender sender;
 
-	public UserInputListener(HUHNPSender sender) {
+	public UserInputListener(SimpleSender sender) {
 		this.sender = sender;
 	}
 
