@@ -1,26 +1,46 @@
 package de.htw.ai.hagen.TMS;
 
+import java.text.ParseException;
+
 public class HUHNPMessage {
 	private String code;
 	private String payload;
 	private String messageId;
-	private int timeToLive;
-	private int currentHops = 0;
+	private String sourceAddress;
+	private String destinationAddress;
+	private String timeToLive;
+	private String currentHops = "0";
 
-	public HUHNPMessage(MessageCode mCode, String messageId, int timeToLive, int currentHops, String payload) {
+	// Constructor for devs using predefined message codes
+	public HUHNPMessage(MessageCode mCode, String messageId, String timeToLive, String currentHops, String sourceAddress,
+			String destination, String payload) {
 		this.code = mCode.code;
 		this.messageId = messageId;
 		this.timeToLive = timeToLive;
 		this.currentHops = currentHops;
 		this.payload = payload;
+		this.sourceAddress = sourceAddress;
+		this.destinationAddress = destination;
+	}
+	
+	// private constructor for parseToHUHNPMessage
+	private HUHNPMessage(String mCode, String messageId, String timeToLive, String currentHops, String sourceAddress,
+			String destination, String payload) {
+		this.code = mCode;
+		this.messageId = messageId;
+		this.timeToLive = timeToLive;
+		this.currentHops = currentHops;
+		this.payload = payload;
+		this.sourceAddress = sourceAddress;
+		this.destinationAddress = destination;
 	}
 
 	@Override
 	public String toString() {
-		return code +" "+ messageId +" "+ timeToLive +" "+ currentHops +" "+ payload;
+		return code + "," + messageId + "," + timeToLive + "," + currentHops + "," + sourceAddress + ","
+				+ destinationAddress + "," + payload;
 	}
 
-	
 	// Setters and Getters
 	public String getCode() {
 		return code;
@@ -46,20 +66,55 @@ public class HUHNPMessage {
 		this.messageId = messageId;
 	}
 
-	public int getTimeToLive() {
+	public String getTimeToLive() {
 		return timeToLive;
 	}
 
-	public void setTimeToLive(int timeToLive) {
+	public void setTimeToLive(String timeToLive) {
 		this.timeToLive = timeToLive;
 	}
 
-	public int getCurrentHops() {
+	public String getCurrentHops() {
 		return currentHops;
 	}
 
-	public void setCurrentHops(int currentHops) {
+	public void setCurrentHops(String currentHops) {
 		this.currentHops = currentHops;
+	}
+	
+	public String getSourceAddress() {
+		return sourceAddress;
+	}
+
+	public void setSourceAddress(String sourceAddress) {
+		this.sourceAddress = sourceAddress;
+	}
+
+	public String getDestinationAddress() {
+		return destinationAddress;
+	}
+
+	public void setDestinationAddress(String destinationAddress) {
+		this.destinationAddress = destinationAddress;
+	}
+
+	public static HUHNPMessage parseToHUHNPMessage  (String message) throws IndexOutOfBoundsException {
+		int mcodeDelimiter = message.indexOf(",", 0);
+		int mIdDelimiter  = message.indexOf(",", mcodeDelimiter+1);
+		int timeToLiveDelimiter = message.indexOf(",", mIdDelimiter+1);
+		int currentHopsDelimiter = message.indexOf(",", timeToLiveDelimiter+1);
+		int sourceAddressDelimiter = message.indexOf(",", currentHopsDelimiter+1);
+		int destinationDelimiter = message.indexOf(",", sourceAddressDelimiter+1);
+		
+		String mCode = message.substring(0, mcodeDelimiter);
+		String mId = message.substring(mcodeDelimiter+1,mIdDelimiter);
+		String timeToLive = message.substring(mIdDelimiter+1,timeToLiveDelimiter);
+		String currentHops = message.substring(timeToLiveDelimiter+1,currentHopsDelimiter);
+		String sourceAddress = message.substring(currentHopsDelimiter+1,sourceAddressDelimiter);
+		String destination = message.substring(sourceAddressDelimiter+1,destinationDelimiter);
+		String payload = (message.length()>=destinationDelimiter+2) ? message.substring(destinationDelimiter+1) : "";
+		
+		return new HUHNPMessage(mCode, mId, timeToLive, currentHops, sourceAddress, destination, payload);
 	}
 
 }
