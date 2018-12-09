@@ -1,7 +1,7 @@
 package de.htw.ai.hagen.TMS;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 import com.pi4j.io.serial.Serial;
 import com.pi4j.io.serial.SerialFactory;
@@ -12,16 +12,20 @@ public class HUHNPController {
 	final static Console console = new Console();
 	public static Boolean lock1 = true;
 	final static Serial serial = SerialFactory.createInstance(); // create an instance of the serial communications
-	final static HUHNPSender sender = new HUHNPSender(serial);// create an instance of the Sender class
+	final static SimpleSender sender = new SimpleSender(serial);// create an instance of the Sender class
+	final static HUHNPInterpreter interpreter = new HUHNPInterpreter();
 	final static SerialConfigurator configurator = new SerialConfigurator(serial, console);
 
 	// business logic variables
-	String address; // Current address of this node
+	public static String address = ""; // Current address of this node
+	public final static String BROADCAST_ADDRESS = "FFFF";
+	static boolean isConfigured = false;
 	static boolean isCoordinator = false; // Is this node the coordinator in the current network?
+	static boolean addressIsPermanent = false; // has this node received a permanent address yet?
 	static boolean coordinatorIsPresent = false;
-	List<String> neighbors; // List of known neighbors
-	List<String> allNodesInNetwork; // If this node is coordinator, it should keep a record of all nodes currently
-									// in the network
+	static Set<String> neighbors = null; // List of known neighbors
+	static Set<String> allNodesInNetwork = null; // If this node is coordinator, it should keep a record of all nodes currently
+	// in the network
 
 	/**
 	 * This example program supports the following optional command
@@ -40,12 +44,12 @@ public class HUHNPController {
 
 		// allow for user to exit program using CTRL-C
 		console.promptForExit();
-		
-		//configure module
+
+		// configure module
 		configurator.configureSerial(args);
-		
+
 		// create and register the serial data listener
-		Thread serialListener = new Thread(new SerialInputListener(serial));
+		Thread serialListener = new Thread(new SerialInputListener(serial, interpreter));
 		Thread userInputListener = new Thread(new UserInputListener(sender));
 		serialListener.start();
 		userInputListener.start();
@@ -53,46 +57,48 @@ public class HUHNPController {
 		// start initial congfiguration of module and set own temporary address
 		sender.configureModule();
 
-
 		// continuous loop to keep the program running until the user terminates the
 		// program
 		while (console.isRunning()) {
 
-			if (isCoordinator) {
-				sender.sendCoordinatorKeepAlive();
-				Thread.sleep(5000);
-			} else {
-				if (coordinatorIsPresent) {
-					System.out.println("Coordinator is present.");
-					coordinatorIsPresent = false;
-					Thread.sleep(10000);
+			if (isConfigured) {
+
+				if (isCoordinator) {
+					sender.sendCoordinatorKeepAlive();
+					Thread.sleep(5000);
 				} else {
-					System.out.println("Missing Coordinator.");
-					for (int i = 0; i <= 6; i++) {
-						sender.discoverPANCoordinator();
-						Thread.sleep(1000);
-						if(coordinatorIsPresent) {break;}
+					if (coordinatorIsPresent) {
+						System.out.println("Coordinator is present.");
+						coordinatorIsPresent = false;
+						Thread.sleep(10000);
+					} else {
+						System.out.println("Missing Coordinator.");
+						for (int i = 0; i <= 6; i++) {
+							sender.discoverPANCoordinator();
+							Thread.sleep(2000);
+							if (coordinatorIsPresent) {
+								break;
+							}
 						}
-					if(!coordinatorIsPresent) {this.imTheCaptainNow();}
-					
+						if (!coordinatorIsPresent) {
+							this.imTheCaptainNow();
+						}
+
+					}
+
 				}
 
 			}
 
-			try {
-
-			} catch (IllegalStateException ex) {
-				ex.printStackTrace();
-			}
-
-			// wait 1 second before continuing
-			Thread.sleep(1000);
 		}
 
 	}
 
+	/**
+	 * method to make this node the coordinator of the network
+	 */
 	protected void imTheCaptainNow() {
-		this.address = sender.setPermanentAddress("0000");
+		address = sender.setPermanentAddress("0000");
 		HUHNPController.isCoordinator = true;
 	}
 
