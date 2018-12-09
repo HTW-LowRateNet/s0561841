@@ -9,9 +9,11 @@ import com.pi4j.io.serial.SerialDataEventListener;
 public class SerialInputListener implements Runnable {
 
 	Serial serial;
-
-	public SerialInputListener(Serial serial) {
+	HUHNPInterpreter interpreter;
+	
+	public SerialInputListener(Serial serial, HUHNPInterpreter interpreter) {
 		this.serial = serial;
+		this. interpreter = interpreter;
 	}
 
 	@Override
@@ -26,13 +28,14 @@ public class SerialInputListener implements Runnable {
 
 				// print out the data received to the console
 				try {
-					synchronized (HUHNPController.lock1) {
-						System.out.println("[Serial input] " + event.getAsciiString());
-						HUHNPInterpreter.parseIncomingData(event.getAsciiString().toString());
-						//System.out.println("[HEX DATA]   " + event.getHexByteString());
-						
-						HUHNPController.lock1.notify();
-					}
+					interpreter.parseIncomingData(event.getAsciiString().toString());
+//					synchronized (HUHNPController.lock1) {
+//						//System.out.println("[Serial input] " + event.getAsciiString());
+//						
+//						//System.out.println("[HEX DATA]   " + event.getHexByteString());
+//						
+//						//HUHNPController.lock1.notify();
+//					}
 
 				} catch (IOException e) {
 					e.printStackTrace();
