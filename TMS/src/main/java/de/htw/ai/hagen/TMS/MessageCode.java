@@ -15,7 +15,9 @@ public enum MessageCode {
 	/** Code for letting network know that this node is the coordinator */
 	ALIV("ALIV"), 
 	/**	Code for letting the network know that it needs to be reset */
-	NRST("NRST");
+	NRST("NRST"), 
+	/**	Code to acknowledge an ADDR Response from the coordinator */
+	AACK("AACK");
 
 
 	protected String code;

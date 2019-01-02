@@ -25,30 +25,34 @@ public class SenderRunnable implements Runnable {
 	private void sendMessage(HUHNPMessage message) {
 
 		try {
-			while (SimpleSender.preparedToSend == false) {
+//			while (HUHNPController.moduleInUse) {
+			synchronized (HUHNPController.moduleInUse) {
+//					HUHNPController.moduleInUse.wait();
+//				}
+//			}
+				HUHNPController.moduleInUse = true;
 
-				try {
-					synchronized (HUHNPController.lock1) {
-						int messageLength = message.toString().length();
-						// System.out.println("AT+SEND=" + messageLength);
-						System.out.println("[Sending]: " + message.toString());
-						serial.write("AT+SEND=" + messageLength);
-						serial.write('\r');
-						serial.write('\n');
-						HUHNPController.lock1.wait();
-					}
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				synchronized (HUHNPController.lock1) {
+
+					int messageLength = message.toString().length();
+					// System.out.println("AT+SEND=" + messageLength);
+					System.out.println("[Sending]: " + message.toString());
+					serial.write("AT+SEND=" + messageLength);
+					serial.write('\r');
+					serial.write('\n');
+					HUHNPController.lock1.wait();
 				}
-			}
-			serial.write(message.toString());
+				serial.write(message.toString());
 
-			// remove message from message queue and restore booleans
+				// remove message from message queue and restore booleans
 //				messageQueue.remove(message);
 //			busy = false;
-			SimpleSender.preparedToSend = false;
-
-		} catch (IllegalStateException | IOException e) {
+				
+					SimpleSender.preparedToSend = false;
+					HUHNPController.moduleInUse = false;
+				
+			}
+		} catch (IllegalStateException | IOException | InterruptedException e) {
 			System.out.println("Something went wrong when preparing to send the message:");
 			e.printStackTrace();
 		}

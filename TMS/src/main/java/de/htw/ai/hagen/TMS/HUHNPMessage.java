@@ -8,8 +8,8 @@ public class HUHNPMessage {
 	private String messageId;
 	private String sourceAddress;
 	private String destinationAddress;
-	private String timeToLive;
-	private String currentHops = "0";
+	private String timeToLive = "06";
+	private String currentHops = "01";
 
 	// Constructor for devs using predefined message codes
 	public HUHNPMessage(MessageCode mCode, String messageId, String timeToLive, String currentHops, String sourceAddress,
@@ -18,6 +18,16 @@ public class HUHNPMessage {
 		this.messageId = messageId;
 		this.timeToLive = timeToLive;
 		this.currentHops = currentHops;
+		this.payload = payload;
+		this.sourceAddress = sourceAddress;
+		this.destinationAddress = destination;
+	}
+	
+	// Constructor for devs using predefined message codes with default TTL and hops
+	public HUHNPMessage(MessageCode mCode, String messageId, String sourceAddress,
+			String destination, String payload) {
+		this.code = mCode.code;
+		this.messageId = messageId;
 		this.payload = payload;
 		this.sourceAddress = sourceAddress;
 		this.destinationAddress = destination;

@@ -11,9 +11,11 @@ public class HUHNPController {
 	// Structural variables
 	final static Console console = new Console();
 	public static Boolean lock1 = true;
+	public static Boolean moduleInUse = false;
 	final static Serial serial = SerialFactory.createInstance(); // create an instance of the serial communications
 	final static SimpleSender sender = new SimpleSender(serial);// create an instance of the Sender class
 	final static HUHNPInterpreter interpreter = new HUHNPInterpreter();
+	public static ForwardedAndSentMessagesBuffer forwardedMessageBuffer = new ForwardedAndSentMessagesBuffer();
 	final static SerialConfigurator configurator = new SerialConfigurator(serial, console);
 
 	// business logic variables
@@ -23,7 +25,7 @@ public class HUHNPController {
 	static boolean isCoordinator = false; // Is this node the coordinator in the current network?
 	static boolean addressIsPermanent = false; // has this node received a permanent address yet?
 	static boolean coordinatorIsPresent = false;
-	static Set<String> neighbors = null; // List of known neighbors
+	static boolean forwardingIsActive = false;
 	static Set<String> allNodesInNetwork = null; // If this node is coordinator, it should keep a record of all nodes currently
 	// in the network
 
@@ -73,6 +75,8 @@ public class HUHNPController {
 						Thread.sleep(10000);
 					} else {
 						System.out.println("Missing Coordinator.");
+						forwardingIsActive = false;
+						
 						for (int i = 0; i <= 6; i++) {
 							sender.discoverPANCoordinator();
 							Thread.sleep(2000);
@@ -83,15 +87,10 @@ public class HUHNPController {
 						if (!coordinatorIsPresent) {
 							this.imTheCaptainNow();
 						}
-
 					}
-
 				}
-
 			}
-
 		}
-
 	}
 
 	/**

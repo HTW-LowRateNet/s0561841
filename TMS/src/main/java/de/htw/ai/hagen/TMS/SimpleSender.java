@@ -1,7 +1,11 @@
 package de.htw.ai.hagen.TMS;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import com.pi4j.io.serial.Serial;
 
 /**
@@ -15,21 +19,29 @@ public class SimpleSender {
 	private Serial serial;
 
 	public static Boolean preparedToSend = false;
+	public static int messageId = 0;
+	private final static String COORDINATOR_ADDRESS = "0000";
 	private final static String BROADCAST_ADDRESS = "FFFF";
 	private final static String DEFAULT_NUMBER_OF_HOPS = "06";
+	public static Queue<String> messageQueue = new LinkedBlockingQueue<>();
+
+	
 
 	public SimpleSender(Serial serial) {
 		this.serial = serial;
 	}
 
 	/**
-	 * helper method to send HUHNP messages
+	 * method to send and forward HUHNP messages
 	 * 
 	 * @param message
 	 */
-	private void sendMessage(HUHNPMessage message) {
+	public void sendMessage(HUHNPMessage message) {
+		HUHNPController.forwardedMessageBuffer.addForwardedMessage(message);
+		messageQueue.add(message.getMessageId());
 		Thread sendingMessage = new Thread(new SenderRunnable(message));
 		sendingMessage.start();
+
 	}
 
 	/**
@@ -44,42 +56,64 @@ public class SimpleSender {
 			address = addr;
 			System.out.println("Set own permanent address: " + address);
 			HUHNPController.addressIsPermanent = true;
+			HUHNPController.isConfigured = false;
 			this.sendATCommand("AT+ADDR=" + address);
 			return address;
 		}
 	};
 
-	/**
-	 * method to discover all neighbor nodes
-	 */
-	protected synchronized void discoverNeighbors() {
-		System.out.println("Discovering neighbors");
-		HUHNPMessage neighborDiscoveryMessage = new HUHNPMessage(MessageCode.DISC, generateMessageID(), "06", "00",
-				HUHNPController.address, BROADCAST_ADDRESS, "Anyone close enough to cuddle?");
-		sendMessage(neighborDiscoveryMessage);
-	}
-
 	/** method to discover the PAN coordinator */
 	protected synchronized void discoverPANCoordinator() {
-		HUHNPMessage coordinatorDiscoveryMessage = new HUHNPMessage(MessageCode.CDIS, generateMessageID(), "06", "00",
-				HUHNPController.address, BROADCAST_ADDRESS,
-				"Is anybody out there? I want to talk to the Captain of this goddamn ship!");
+		HUHNPMessage coordinatorDiscoveryMessage = new HUHNPMessage(MessageCode.CDIS, generateMessageID(),
+				HUHNPController.address, COORDINATOR_ADDRESS,
+				"Looking for the coordinator.");
 		sendMessage(coordinatorDiscoveryMessage);
 	}
 
 	/** Method to let network know this node is the coordinator */
 	protected synchronized void sendCoordinatorKeepAlive() {
-		HUHNPMessage imTheCaptainMessage = new HUHNPMessage(MessageCode.ALIV, generateMessageID(), "06", "00",
-				HUHNPController.address, BROADCAST_ADDRESS, "I'm the captain!");
+		HUHNPMessage imTheCaptainMessage = new HUHNPMessage(MessageCode.ALIV, generateMessageID(),
+				HUHNPController.address, BROADCAST_ADDRESS, "They call me the coordinator.");
 		sendMessage(imTheCaptainMessage);
 	}
 
 	/** Method to let the network know it needs to reset itself */
 	public void sendNetworkReset() {
-		HUHNPMessage networkResetMessage = new HUHNPMessage(MessageCode.NRST, generateMessageID(), "06", "00",
+		HUHNPMessage networkResetMessage = new HUHNPMessage(MessageCode.NRST, generateMessageID(),
 				HUHNPController.address, BROADCAST_ADDRESS, "Network restart needed");
 		sendMessage(networkResetMessage);
 	};
+	
+	/**
+	 * Method that allows this node to send an address in Response to an ADDR request
+	 * @param receiver
+	 * @param messageId
+	 * @param address
+	 */
+	public void sendAddress(String receiver, String messageId, String address) {
+		HUHNPMessage newAddressMessage = new HUHNPMessage(MessageCode.ADDR, messageId,
+				HUHNPController.address, receiver, address);
+		sendMessage(newAddressMessage);
+	}
+	
+	/**
+	 * Method to make an ADDR request to the coordinator
+	 */
+	public void requestAddress() {
+		HUHNPMessage newAddressMessage = new HUHNPMessage(MessageCode.ADDR, generateMessageID(),
+				HUHNPController.address, COORDINATOR_ADDRESS, "");
+		sendMessage(newAddressMessage);
+	}
+
+	/**
+	 * Method to send an AACK to the coordinator
+	 */
+	public void sendAAcknowledgement(HUHNPMessage message) {
+		HUHNPMessage newAACKMessage = new HUHNPMessage(MessageCode.AACK, generateMessageID(),
+				HUHNPController.address, message.getSourceAddress(), message.getPayload());
+		sendMessage(newAACKMessage);
+		
+	}
 
 	/** method to send AT commands directly to the module */
 	protected void sendATCommand(String command) {
@@ -103,10 +137,8 @@ public class SimpleSender {
 	 */
 	// TODO Generate smarter message ID
 	private String generateMessageID() {
-		Random random = new Random();
-		Integer number = random.nextInt(8999) + 1000;
-		System.out.println("Don't forget to change the messageID generator!");
-		return number.toString() + "mID";
+		messageId += 1;
+		return "id-"+messageId;
 	}
 
 	/**
@@ -120,7 +152,7 @@ public class SimpleSender {
 			HUHNPController.lock1.wait();
 		}
 		this.setTemporaryAddress();
-		HUHNPController.isConfigured = true;
+		
 	};
 
 	/**
@@ -140,25 +172,6 @@ public class SimpleSender {
 		}
 	}
 
-	/**
-	 * Method that allows this node to send an address in Response to an ADDR request
-	 * @param receiver
-	 * @param messageId
-	 * @param address
-	 */
-	public void sendAddress(String receiver, String messageId, String address) {
-		HUHNPMessage newAddressMessage = new HUHNPMessage(MessageCode.ADDR, messageId, "06", "00",
-				HUHNPController.address, receiver, address);
-		sendMessage(newAddressMessage);
-	}
-	
-	/**
-	 * Method to make an ADDR request to the coordinator
-	 */
-	public void requestAddress() {
-		HUHNPMessage newAddressMessage = new HUHNPMessage(MessageCode.ADDR, generateMessageID(), "06", "00",
-				HUHNPController.address, "0000", "");
-		sendMessage(newAddressMessage);
-	}
+
 
 }

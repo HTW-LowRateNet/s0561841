@@ -8,7 +8,7 @@ import java.io.IOException;
  *
  * @author Hagen Wittlich
  * 
- *         Based on J4Pi example by Robert Savage
+ *  Based on J4Pi example by Robert Savage
  */
 public class App {
 	
