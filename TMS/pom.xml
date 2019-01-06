@@ -5,7 +5,7 @@
 
 	<groupId>.de.htw.ai.hagen</groupId>
 	<artifactId>TMS</artifactId>
-	<version>0.3-SNAPSHOT</version>
+	<version>0.4</version>
 	<packaging>jar</packaging>
 
 	<name>TMS</name>
@@ -23,7 +23,7 @@
 				<version>3.1.0</version>
 				<configuration>
 					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
+						<descriptorRef>wd</descriptorRef>
 					</descriptorRefs>
 					<archive>
 						<manifest>
