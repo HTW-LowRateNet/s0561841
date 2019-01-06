@@ -37,7 +37,6 @@ public class SimpleSender {
 	 * @param message
 	 */
 	public void sendMessage(HUHNPMessage message) {
-		System.out.println("Thread started");
 		HUHNPController.forwardedMessageBuffer.addForwardedMessage(message);
 		messageQueue.add(message.getMessageId());
 		Thread sendingMessage = new Thread(new SenderRunnable(message));

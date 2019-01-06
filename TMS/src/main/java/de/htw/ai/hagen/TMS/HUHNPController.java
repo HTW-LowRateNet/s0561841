@@ -27,7 +27,8 @@ public class HUHNPController {
 	static boolean addressIsPermanent = false; // has this node received a permanent address yet?
 	static boolean coordinatorIsPresent = false;
 	static boolean forwardingIsActive = false;
-	static Set<String> addressRegister = null; // If this node is coordinator, it should keep a record of all nodes currently
+	static Set<String> addressRegister = null; // If this node is coordinator, it should keep a record of all nodes
+												// currently
 	// in the network
 
 	/**
@@ -76,7 +77,7 @@ public class HUHNPController {
 						Thread.sleep(10000);
 					} else {
 						System.out.println("Missing Coordinator.");
-						
+
 						for (int i = 0; i <= 6; i++) {
 							sender.discoverPANCoordinator();
 							Thread.sleep(2000);
