@@ -56,17 +56,17 @@ public class HUHNPInterpreter {
 				System.out.println("[Received: " + lastSender + "] " + incomingStringMessage);
 
 				// decide whether this node needs to handle the incoming input
-				if (message.getDestinationAddress().equals(HUHNPController.address)
-						|| message.getDestinationAddress().equals(HUHNPController.BROADCAST_ADDRESS)
+				if ((message.getDestinationAddress().equals(HUHNPController.address)
+						|| message.getDestinationAddress().equals(HUHNPController.BROADCAST_ADDRESS))
 								&& hasNotBeenForwardedBefore(message)) {
 
 					/*----------------------------------------- COORDINATOR Role----------------------------------- */
 					if (HUHNPController.isCoordinator) {
 
 						if (data.contains("ALIV")) {
-							if (!hasNotBeenForwardedBefore(message)) {
+//							if (!hasNotBeenForwardedBefore(message)) {
 								HUHNPController.sender.sendNetworkReset();
-							}
+//							}
 						}
 
 						//

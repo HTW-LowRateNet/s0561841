@@ -69,12 +69,12 @@ public class HUHNPController {
 
 				if (isCoordinator) {
 					sender.sendCoordinatorKeepAlive();
-					Thread.sleep(5000);
+					Thread.sleep(60000);
 				} else {
 					if (coordinatorIsPresent) {
 						System.out.println("Coordinator is present.");
 						coordinatorIsPresent = false;
-						Thread.sleep(10000);
+						Thread.sleep(70000);
 					} else {
 						System.out.println("Missing Coordinator.");
 
