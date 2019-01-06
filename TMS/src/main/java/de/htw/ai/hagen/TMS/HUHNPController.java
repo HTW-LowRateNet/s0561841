@@ -76,7 +76,6 @@ public class HUHNPController {
 						Thread.sleep(10000);
 					} else {
 						System.out.println("Missing Coordinator.");
-						forwardingIsActive = false;
 						
 						for (int i = 0; i <= 6; i++) {
 							sender.discoverPANCoordinator();
@@ -100,6 +99,7 @@ public class HUHNPController {
 	protected void imTheCaptainNow() {
 		address = sender.setPermanentAddress("0000");
 		HUHNPController.isCoordinator = true;
+		forwardingIsActive = false;
 	}
 
 }

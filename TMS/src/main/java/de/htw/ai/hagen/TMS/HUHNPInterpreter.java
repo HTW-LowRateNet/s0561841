@@ -88,6 +88,7 @@ public class HUHNPInterpreter {
 							HUHNPController.isCoordinator = false;
 							HUHNPController.sender.setTemporaryAddress();
 							HUHNPController.addressRegister = null;
+							HUHNPController.forwardingIsActive = false;
 
 						}
 					}
