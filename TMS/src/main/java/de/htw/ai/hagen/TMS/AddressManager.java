@@ -6,11 +6,11 @@ public class AddressManager {
 	
 	public static int coordinatorAddress = 0x0000;
 		
-	private static int temporaryAddressesUpperBound = 0x00FF;
+	private static int temporaryAddressesUpperBound = 0x0FFF;
 	private static int temporaryAddressesLowerBound = 0x0011;
 	
 	private static int permanentAddressesUpperBound = 0xFFFE;
-	private static int permanentAddressesLowerBound = 0x0011;
+	private static int permanentAddressesLowerBound = 0x1000;
 	
 	public static Integer lastGivenAddress = null; 
 		

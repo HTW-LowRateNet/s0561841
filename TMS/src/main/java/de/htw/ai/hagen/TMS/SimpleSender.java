@@ -37,6 +37,7 @@ public class SimpleSender {
 	 * @param message
 	 */
 	public void sendMessage(HUHNPMessage message) {
+		System.out.println("Thread started");
 		HUHNPController.forwardedMessageBuffer.addForwardedMessage(message);
 		messageQueue.add(message.getMessageId());
 		Thread sendingMessage = new Thread(new SenderRunnable(message));
@@ -52,14 +53,15 @@ public class SimpleSender {
 	 */
 	protected String setPermanentAddress(String addr) {
 		String address;
-		synchronized (HUHNPController.lock1) {
+		synchronized (HUHNPController.lock2) {
 			address = addr;
 			System.out.println("Set own permanent address: " + address);
 			HUHNPController.addressIsPermanent = true;
 			HUHNPController.isConfigured = false;
 			this.sendATCommand("AT+ADDR=" + address);
-			return address;
 		}
+			return address;
+		
 	};
 
 	/** method to discover the PAN coordinator */

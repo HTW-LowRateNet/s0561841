@@ -11,6 +11,7 @@ public class HUHNPController {
 	// Structural variables
 	final static Console console = new Console();
 	public static Boolean lock1 = true;
+	public static Boolean lock2 = true;
 	public static Boolean moduleInUse = false;
 	final static Serial serial = SerialFactory.createInstance(); // create an instance of the serial communications
 	final static SimpleSender sender = new SimpleSender(serial);// create an instance of the Sender class
@@ -26,7 +27,7 @@ public class HUHNPController {
 	static boolean addressIsPermanent = false; // has this node received a permanent address yet?
 	static boolean coordinatorIsPresent = false;
 	static boolean forwardingIsActive = false;
-	static Set<String> allNodesInNetwork = null; // If this node is coordinator, it should keep a record of all nodes currently
+	static Set<String> addressRegister = null; // If this node is coordinator, it should keep a record of all nodes currently
 	// in the network
 
 	/**

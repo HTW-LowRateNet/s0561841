@@ -25,17 +25,16 @@ public class SenderRunnable implements Runnable {
 	private void sendMessage(HUHNPMessage message) {
 
 		try {
-//			while (HUHNPController.moduleInUse) {
-			synchronized (HUHNPController.moduleInUse) {
-//					HUHNPController.moduleInUse.wait();
-//				}
-//			}
+			synchronized (HUHNPController.lock2) {
+				while (HUHNPController.moduleInUse || !HUHNPController.isConfigured) {
+					HUHNPController.lock2.wait();
+				}
+
 				HUHNPController.moduleInUse = true;
 
 				synchronized (HUHNPController.lock1) {
 
 					int messageLength = message.toString().length();
-					// System.out.println("AT+SEND=" + messageLength);
 					System.out.println("[Sending]: " + message.toString());
 					serial.write("AT+SEND=" + messageLength);
 					serial.write('\r');
@@ -44,25 +43,14 @@ public class SenderRunnable implements Runnable {
 				}
 				serial.write(message.toString());
 
-				// remove message from message queue and restore booleans
-//				messageQueue.remove(message);
-//			busy = false;
-				
-					SimpleSender.preparedToSend = false;
-					HUHNPController.moduleInUse = false;
-				
+				SimpleSender.preparedToSend = false;
+				HUHNPController.moduleInUse = false;
 			}
+
 		} catch (IllegalStateException | IOException | InterruptedException e) {
 			System.out.println("Something went wrong when preparing to send the message:");
 			e.printStackTrace();
 		}
-
-//			// if there are more messages waiting to be sent, do it.
-//			if (!messageQueue.isEmpty()) {
-//				sendMessage(messageQueue.iterator().next());
-//			}
-//
-//	}
 
 	}
 
