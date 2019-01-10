@@ -23,13 +23,14 @@ public class ForwardedAndSentMessagesBuffer {
 	public boolean contains(HUHNPMessage message) {
 		if (!forwardedMessages.isEmpty()) {
 			for (Entry<LocalDateTime, HUHNPMessage> entry : forwardedMessages.entrySet()) {
-				if (entry.getValue().getMessageId() == message.getMessageId()
-						&& entry.getValue().getDestinationAddress() == message.getDestinationAddress()
-						&& entry.getValue().getSourceAddress() == message.getSourceAddress()) {
+				if (entry.getValue().getMessageId().equals(message.getMessageId())
+						&& entry.getValue().getDestinationAddress().equals(message.getDestinationAddress())
+						&& entry.getValue().getSourceAddress().equals(message.getSourceAddress())) {
 					return true;
-				}
+				} else {System.out.println(entry.getValue().toString());}
 			}
 		}
+		
 		return false;
 	}
 

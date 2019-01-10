@@ -21,8 +21,6 @@ public class AddressManager {
 	public static String createTemporaryNodeAddress() {
 		Random rand = new Random();
 		int myRandomNumber = rand.nextInt(temporaryAddressesUpperBound-temporaryAddressesLowerBound) + temporaryAddressesLowerBound; // Generates a random number between 0011 and 00FF (00EE+0011)
-		System.out.printf("%x\n",myRandomNumber); // Prints it in hex, such as "0x14"
-		// or....
 		return String.format("%1$04X", myRandomNumber); // Random hex number in result
 	}
 	

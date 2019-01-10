@@ -66,6 +66,8 @@ public class HUHNPInterpreter {
 						if (data.contains("ALIV")) {
 //							if (!hasNotBeenForwardedBefore(message)) {
 								HUHNPController.sender.sendNetworkReset();
+								coordinatorNRST();
+								
 //							}
 						}
 
@@ -84,11 +86,7 @@ public class HUHNPInterpreter {
 						}
 
 						if (data.contains("NRST")) {
-							HUHNPController.addressIsPermanent = false;
-							HUHNPController.isCoordinator = false;
-							HUHNPController.sender.setTemporaryAddress();
-							HUHNPController.addressRegister = null;
-							HUHNPController.forwardingIsActive = false;
+							coordinatorNRST();
 
 						}
 					}
@@ -160,4 +158,13 @@ public class HUHNPInterpreter {
 	private boolean coordinatorIsMissing() {
 		return (!HUHNPController.coordinatorIsPresent && !HUHNPController.isCoordinator) ? true : false;
 	}
+	
+	private void coordinatorNRST() {
+		HUHNPController.addressIsPermanent = false;
+		HUHNPController.isCoordinator = false;
+		HUHNPController.sender.setTemporaryAddress();
+		HUHNPController.addressRegister = null;
+		HUHNPController.forwardingIsActive = false;
+	}
+	
 }

@@ -127,4 +127,65 @@ public class HUHNPMessage {
 		return new HUHNPMessage(mCode, mId, timeToLive, currentHops, sourceAddress, destination, payload);
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((code == null) ? 0 : code.hashCode());
+		result = prime * result + ((currentHops == null) ? 0 : currentHops.hashCode());
+		result = prime * result + ((destinationAddress == null) ? 0 : destinationAddress.hashCode());
+		result = prime * result + ((messageId == null) ? 0 : messageId.hashCode());
+		result = prime * result + ((payload == null) ? 0 : payload.hashCode());
+		result = prime * result + ((sourceAddress == null) ? 0 : sourceAddress.hashCode());
+		result = prime * result + ((timeToLive == null) ? 0 : timeToLive.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		HUHNPMessage other = (HUHNPMessage) obj;
+		if (code == null) {
+			if (other.code != null)
+				return false;
+		} else if (!code.equals(other.code))
+			return false;
+		if (currentHops == null) {
+			if (other.currentHops != null)
+				return false;
+		} else if (!currentHops.equals(other.currentHops))
+			return false;
+		if (destinationAddress == null) {
+			if (other.destinationAddress != null)
+				return false;
+		} else if (!destinationAddress.equals(other.destinationAddress))
+			return false;
+		if (messageId == null) {
+			if (other.messageId != null)
+				return false;
+		} else if (!messageId.equals(other.messageId))
+			return false;
+		if (payload == null) {
+			if (other.payload != null)
+				return false;
+		} else if (!payload.equals(other.payload))
+			return false;
+		if (sourceAddress == null) {
+			if (other.sourceAddress != null)
+				return false;
+		} else if (!sourceAddress.equals(other.sourceAddress))
+			return false;
+		if (timeToLive == null) {
+			if (other.timeToLive != null)
+				return false;
+		} else if (!timeToLive.equals(other.timeToLive))
+			return false;
+		return true;
+	}
+
 }

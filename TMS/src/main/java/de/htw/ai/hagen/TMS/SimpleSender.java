@@ -23,7 +23,6 @@ public class SimpleSender {
 	private final static String COORDINATOR_ADDRESS = "0000";
 	private final static String BROADCAST_ADDRESS = "FFFF";
 	private final static String DEFAULT_NUMBER_OF_HOPS = "06";
-	public static Queue<String> messageQueue = new LinkedBlockingQueue<>();
 
 	
 
@@ -38,7 +37,6 @@ public class SimpleSender {
 	 */
 	public void sendMessage(HUHNPMessage message) {
 		HUHNPController.forwardedMessageBuffer.addForwardedMessage(message);
-		messageQueue.add(message.getMessageId());
 		Thread sendingMessage = new Thread(new SenderRunnable(message));
 		sendingMessage.start();
 
