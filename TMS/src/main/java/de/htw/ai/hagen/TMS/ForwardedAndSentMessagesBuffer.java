@@ -27,7 +27,7 @@ public class ForwardedAndSentMessagesBuffer {
 						&& entry.getValue().getDestinationAddress().equals(message.getDestinationAddress())
 						&& entry.getValue().getSourceAddress().equals(message.getSourceAddress())) {
 					return true;
-				} else {System.out.println(entry.getValue().toString());}
+				}
 			}
 		}
 		

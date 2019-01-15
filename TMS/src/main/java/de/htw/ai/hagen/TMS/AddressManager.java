@@ -9,10 +9,10 @@ public class AddressManager {
 	private static int temporaryAddressesUpperBound = 0x0FFF;
 	private static int temporaryAddressesLowerBound = 0x0011;
 	
-	private static int permanentAddressesUpperBound = 0xFFFE;
-	private static int permanentAddressesLowerBound = 0x1000;
+	public static int permanentAddressesUpperBound = 0xFFFE;
+	public static int permanentAddressesLowerBound = 0x1000;
 	
-	public static Integer lastGivenAddress = null; 
+	public static Integer nextFreeAddress = permanentAddressesLowerBound; 
 		
 	/**
 	 * this method is used by the Node on startup. It is necessary to request a permanent address.
@@ -25,12 +25,10 @@ public class AddressManager {
 	}
 	
 	
-	// TODO this could be better handled by an address Collection itself
 	public static String generateNextFreePermanentAddress() {
-		if (lastGivenAddress == null) {
-			return String.format("%1$04X",permanentAddressesLowerBound);
-		}
-		return String.format("%1$04X",lastGivenAddress+1);
+		Integer newAddress = nextFreeAddress;
+		nextFreeAddress++;
+		return String.format("%1$04X",newAddress);
 	}
 
 

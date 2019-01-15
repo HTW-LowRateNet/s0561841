@@ -165,6 +165,7 @@ public class HUHNPInterpreter {
 		HUHNPController.sender.setTemporaryAddress();
 		HUHNPController.addressRegister = null;
 		HUHNPController.forwardingIsActive = false;
+		AddressManager.nextFreeAddress = AddressManager.permanentAddressesLowerBound;
 	}
 	
 }

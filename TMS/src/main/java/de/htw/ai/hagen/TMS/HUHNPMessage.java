@@ -9,7 +9,7 @@ public class HUHNPMessage {
 	private String sourceAddress;
 	private String destinationAddress;
 	private String timeToLive = "06";
-	private String currentHops = "01";
+	private String currentHops = "00";
 
 	// Constructor for devs using predefined message codes
 	public HUHNPMessage(MessageCode mCode, String messageId, String timeToLive, String currentHops, String sourceAddress,
