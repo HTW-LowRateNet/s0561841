@@ -15,7 +15,7 @@ import com.pi4j.io.serial.Serial;
  * @author Hagen
  *
  */
-public class SimpleSender {
+public class Sender {
 	private Serial serial;
 
 	public static Boolean preparedToSend = false;
@@ -26,7 +26,7 @@ public class SimpleSender {
 
 	
 
-	public SimpleSender(Serial serial) {
+	public Sender(Serial serial) {
 		this.serial = serial;
 	}
 
@@ -35,8 +35,8 @@ public class SimpleSender {
 	 * 
 	 * @param message
 	 */
-	public void sendMessage(HUHNPMessage message) {
-		HUHNPController.forwardedMessageBuffer.addForwardedMessage(message);
+	public void sendMessage(Message message) {
+		Controller.forwardedMessageBuffer.addForwardedMessage(message);
 		Thread sendingMessage = new Thread(new SenderRunnable(message));
 		sendingMessage.start();
 
@@ -50,11 +50,11 @@ public class SimpleSender {
 	 */
 	protected String setPermanentAddress(String addr) {
 		String address;
-		synchronized (HUHNPController.lock2) {
+		synchronized (Controller.lock2) {
 			address = addr;
 			System.out.println("Set own permanent address: " + address);
-			HUHNPController.addressIsPermanent = true;
-			HUHNPController.isConfigured = false;
+			Controller.addressIsPermanent = true;
+			Controller.isConfigured = false;
 			this.sendATCommand("AT+ADDR=" + address);
 		}
 			return address;
@@ -63,23 +63,23 @@ public class SimpleSender {
 
 	/** method to discover the PAN coordinator */
 	protected synchronized void discoverPANCoordinator() {
-		HUHNPMessage coordinatorDiscoveryMessage = new HUHNPMessage(MessageCode.CDIS, generateMessageID(),
-				HUHNPController.address, COORDINATOR_ADDRESS,
+		Message coordinatorDiscoveryMessage = new Message(MessageCode.CDIS, generateMessageID(),
+				Controller.address, COORDINATOR_ADDRESS,
 				"Looking for the coordinator.");
 		sendMessage(coordinatorDiscoveryMessage);
 	}
 
 	/** Method to let network know this node is the coordinator */
 	protected synchronized void sendCoordinatorKeepAlive() {
-		HUHNPMessage imTheCaptainMessage = new HUHNPMessage(MessageCode.ALIV, generateMessageID(),
-				HUHNPController.address, BROADCAST_ADDRESS, "They call me the coordinator.");
+		Message imTheCaptainMessage = new Message(MessageCode.ALIV, generateMessageID(),
+				Controller.address, BROADCAST_ADDRESS, "They call me the coordinator.");
 		sendMessage(imTheCaptainMessage);
 	}
 
 	/** Method to let the network know it needs to reset itself */
 	public void sendNetworkReset() {
-		HUHNPMessage networkResetMessage = new HUHNPMessage(MessageCode.NRST, generateMessageID(),
-				HUHNPController.address, BROADCAST_ADDRESS, "Network restart needed");
+		Message networkResetMessage = new Message(MessageCode.NRST, generateMessageID(),
+				Controller.address, BROADCAST_ADDRESS, "Network restart needed");
 		sendMessage(networkResetMessage);
 	};
 	
@@ -90,8 +90,8 @@ public class SimpleSender {
 	 * @param address
 	 */
 	public void sendAddress(String receiver, String messageId, String address) {
-		HUHNPMessage newAddressMessage = new HUHNPMessage(MessageCode.ADDR, messageId,
-				HUHNPController.address, receiver, address);
+		Message newAddressMessage = new Message(MessageCode.ADDR, messageId,
+				Controller.address, receiver, address);
 		sendMessage(newAddressMessage);
 	}
 	
@@ -99,17 +99,17 @@ public class SimpleSender {
 	 * Method to make an ADDR request to the coordinator
 	 */
 	public void requestAddress() {
-		HUHNPMessage newAddressMessage = new HUHNPMessage(MessageCode.ADDR, generateMessageID(),
-				HUHNPController.address, COORDINATOR_ADDRESS, "");
+		Message newAddressMessage = new Message(MessageCode.ADDR, generateMessageID(),
+				Controller.address, COORDINATOR_ADDRESS, "");
 		sendMessage(newAddressMessage);
 	}
 
 	/**
 	 * Method to send an AACK to the coordinator
 	 */
-	public void sendAAcknowledgement(HUHNPMessage message) {
-		HUHNPMessage newAACKMessage = new HUHNPMessage(MessageCode.AACK, generateMessageID(),
-				HUHNPController.address, message.getSourceAddress(), message.getPayload());
+	public void sendAAcknowledgement(Message message) {
+		Message newAACKMessage = new Message(MessageCode.AACK, generateMessageID(),
+				Controller.address, message.getSourceAddress(), message.getPayload());
 		sendMessage(newAACKMessage);
 		
 	}
@@ -146,9 +146,9 @@ public class SimpleSender {
 	 * @throws InterruptedException
 	 */
 	protected void configureModule() throws InterruptedException {
-		synchronized (HUHNPController.lock1) {
+		synchronized (Controller.lock1) {
 			this.sendATCommand("AT+CFG=433000000,20,9,10,1,1,0,0,0,0,3000,8,4");
-			HUHNPController.lock1.wait();
+			Controller.lock1.wait();
 		}
 		this.setTemporaryAddress();
 		
@@ -162,10 +162,10 @@ public class SimpleSender {
 	 */
 	protected String setTemporaryAddress() {
 		String address;
-		synchronized (HUHNPController.lock1) {
+		synchronized (Controller.lock1) {
 			address = AddressManager.createTemporaryNodeAddress();
 			System.out.println("Set own temporary address: " + address);
-			HUHNPController.address=address;
+			Controller.address=address;
 			this.sendATCommand("AT+ADDR=" + address);
 			return address;
 		}

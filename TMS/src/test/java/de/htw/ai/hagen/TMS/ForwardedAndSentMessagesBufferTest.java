@@ -11,12 +11,12 @@ public class ForwardedAndSentMessagesBufferTest {
 	@Test
 	public void containsTest() {
 		
-		ForwardedAndSentMessagesBuffer forwardbuffer = new  ForwardedAndSentMessagesBuffer();
+		MessageBuffer forwardbuffer = new  MessageBuffer();
 		
-		forwardbuffer.addForwardedMessage(new HUHNPMessage(MessageCode.CDIS, "xyz",HUHNPController.address, "0000",
+		forwardbuffer.addForwardedMessage(new Message(MessageCode.CDIS, "xyz",Controller.address, "0000",
 				"Looking for the coordinator."));
 		
-		assertTrue(forwardbuffer.contains(new HUHNPMessage(MessageCode.CDIS, "xyz",HUHNPController.address, "0000",
+		assertTrue(forwardbuffer.contains(new Message(MessageCode.CDIS, "xyz",Controller.address, "0000",
 				"Looking for the coordinatoooor.")));
 	}
 	

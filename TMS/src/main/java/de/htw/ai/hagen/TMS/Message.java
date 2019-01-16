@@ -2,7 +2,7 @@ package de.htw.ai.hagen.TMS;
 
 import java.text.ParseException;
 
-public class HUHNPMessage {
+public class Message {
 	private String code;
 	private String payload;
 	private String messageId;
@@ -12,7 +12,7 @@ public class HUHNPMessage {
 	private String currentHops = "00";
 
 	// Constructor for devs using predefined message codes
-	public HUHNPMessage(MessageCode mCode, String messageId, String timeToLive, String currentHops, String sourceAddress,
+	public Message(MessageCode mCode, String messageId, String timeToLive, String currentHops, String sourceAddress,
 			String destination, String payload) {
 		this.code = mCode.code;
 		this.messageId = messageId;
@@ -24,7 +24,7 @@ public class HUHNPMessage {
 	}
 	
 	// Constructor for devs using predefined message codes with default TTL and hops
-	public HUHNPMessage(MessageCode mCode, String messageId, String sourceAddress,
+	public Message(MessageCode mCode, String messageId, String sourceAddress,
 			String destination, String payload) {
 		this.code = mCode.code;
 		this.messageId = messageId;
@@ -34,7 +34,7 @@ public class HUHNPMessage {
 	}
 	
 	// private constructor for parseToHUHNPMessage
-	private HUHNPMessage(String mCode, String messageId, String timeToLive, String currentHops, String sourceAddress,
+	private Message(String mCode, String messageId, String timeToLive, String currentHops, String sourceAddress,
 			String destination, String payload) {
 		this.code = mCode;
 		this.messageId = messageId;
@@ -108,7 +108,7 @@ public class HUHNPMessage {
 		this.destinationAddress = destinationAddress;
 	}
 
-	public static HUHNPMessage parseToHUHNPMessage  (String message) throws IndexOutOfBoundsException {
+	public static Message parseToHUHNPMessage  (String message) throws IndexOutOfBoundsException {
 		int mcodeDelimiter = message.indexOf(",", 0);
 		int mIdDelimiter  = message.indexOf(",", mcodeDelimiter+1);
 		int timeToLiveDelimiter = message.indexOf(",", mIdDelimiter+1);
@@ -124,7 +124,7 @@ public class HUHNPMessage {
 		String destination = message.substring(sourceAddressDelimiter+1,destinationDelimiter);
 		String payload = (message.length()>=destinationDelimiter+2) ? message.substring(destinationDelimiter+1) : "";
 		
-		return new HUHNPMessage(mCode, mId, timeToLive, currentHops, sourceAddress, destination, payload);
+		return new Message(mCode, mId, timeToLive, currentHops, sourceAddress, destination, payload);
 	}
 
 	@Override
@@ -149,7 +149,7 @@ public class HUHNPMessage {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		HUHNPMessage other = (HUHNPMessage) obj;
+		Message other = (Message) obj;
 		if (code == null) {
 			if (other.code != null)
 				return false;

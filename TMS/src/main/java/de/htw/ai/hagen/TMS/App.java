@@ -14,7 +14,7 @@ public class App {
 	
 	public static void main(String args[])  {
 
-		HUHNPController controller = new HUHNPController();
+		Controller controller = new Controller();
 		
 		try {
 			controller.runHUHNPController(args);

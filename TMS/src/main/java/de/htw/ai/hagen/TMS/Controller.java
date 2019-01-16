@@ -7,16 +7,16 @@ import com.pi4j.io.serial.Serial;
 import com.pi4j.io.serial.SerialFactory;
 import com.pi4j.util.Console;
 
-public class HUHNPController {
+public class Controller {
 	// Structural variables
 	final static Console console = new Console();
 	public static Boolean lock1 = true;
 	public static Boolean lock2 = true;
 	public static Boolean moduleInUse = false;
 	final static Serial serial = SerialFactory.createInstance(); // create an instance of the serial communications
-	final static SimpleSender sender = new SimpleSender(serial);// create an instance of the Sender class
-	final static HUHNPInterpreter interpreter = new HUHNPInterpreter();
-	public static ForwardedAndSentMessagesBuffer forwardedMessageBuffer = new ForwardedAndSentMessagesBuffer();
+	final static Sender sender = new Sender(serial);// create an instance of the Sender class
+	final static MessageInterpreter interpreter = new MessageInterpreter();
+	public static MessageBuffer forwardedMessageBuffer = new MessageBuffer();
 	final static SerialConfigurator configurator = new SerialConfigurator(serial, console);
 
 	// business logic variables
@@ -99,7 +99,7 @@ public class HUHNPController {
 	 */
 	protected void imTheCaptainNow() {
 		address = sender.setPermanentAddress("0000");
-		HUHNPController.isCoordinator = true;
+		Controller.isCoordinator = true;
 		forwardingIsActive = false;
 	}
 

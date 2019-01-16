@@ -4,16 +4,16 @@ import java.io.IOException;
 
 import com.pi4j.io.serial.Serial;
 
-import de.htw.ai.hagen.TMS.HUHNPController;
-import de.htw.ai.hagen.TMS.HUHNPMessage;
-import de.htw.ai.hagen.TMS.SimpleSender;
+import de.htw.ai.hagen.TMS.Controller;
+import de.htw.ai.hagen.TMS.Message;
+import de.htw.ai.hagen.TMS.Sender;
 
 public class SenderRunnable implements Runnable {
 
-	Serial serial = HUHNPController.serial;
-	HUHNPMessage message;
+	Serial serial = Controller.serial;
+	Message message;
 
-	public SenderRunnable(HUHNPMessage message) {
+	public SenderRunnable(Message message) {
 		this.message = message;
 	}
 
@@ -22,29 +22,29 @@ public class SenderRunnable implements Runnable {
 		sendMessage(message);
 	}
 
-	private void sendMessage(HUHNPMessage message) {
+	private void sendMessage(Message message) {
 
 		try {
-			synchronized (HUHNPController.lock2) {
-				while (HUHNPController.moduleInUse || !HUHNPController.isConfigured) {
-					HUHNPController.lock2.wait();
+			synchronized (Controller.lock2) {
+				while (Controller.moduleInUse || !Controller.isConfigured) {
+					Controller.lock2.wait();
 				}
 
-				HUHNPController.moduleInUse = true;
+				Controller.moduleInUse = true;
 
-				synchronized (HUHNPController.lock1) {
+				synchronized (Controller.lock1) {
 
 					int messageLength = message.toString().length();
 					System.out.println("[Sending]: " + message.toString());
 					serial.write("AT+SEND=" + messageLength);
 					serial.write('\r');
 					serial.write('\n');
-					HUHNPController.lock1.wait();
+					Controller.lock1.wait();
 				}
 				serial.write(message.toString());
 
-				SimpleSender.preparedToSend = false;
-				HUHNPController.moduleInUse = false;
+				Sender.preparedToSend = false;
+				Controller.moduleInUse = false;
 			}
 
 		} catch (IllegalStateException | IOException | InterruptedException e) {

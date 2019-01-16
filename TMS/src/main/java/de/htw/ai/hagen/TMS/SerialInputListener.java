@@ -9,9 +9,9 @@ import com.pi4j.io.serial.SerialDataEventListener;
 public class SerialInputListener implements Runnable {
 
 	Serial serial;
-	HUHNPInterpreter interpreter;
+	MessageInterpreter interpreter;
 
-	public SerialInputListener(Serial serial, HUHNPInterpreter interpreter) {
+	public SerialInputListener(Serial serial, MessageInterpreter interpreter) {
 		this.serial = serial;
 		this.interpreter = interpreter;
 	}

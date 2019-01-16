@@ -6,7 +6,7 @@ package de.htw.ai.hagen.TMS;
  * @author Hagen
  *
  */
-public class HUHNPInterpreter {
+public class MessageInterpreter {
 
 	public static boolean gotExpectedAnswerFromModule = false;
 	Object fakelock = new Object();
@@ -24,15 +24,15 @@ public class HUHNPInterpreter {
 
 				@Override
 				public void run() {
-					if (HUHNPController.isConfigured == true) {
-						synchronized (HUHNPController.lock1) {
-						HUHNPController.lock1.notifyAll();
-						SimpleSender.preparedToSend = true;
+					if (Controller.isConfigured == true) {
+						synchronized (Controller.lock1) {
+						Controller.lock1.notifyAll();
+						Sender.preparedToSend = true;
 						}
 					} else {
-						synchronized (HUHNPController.lock2) {
-						HUHNPController.isConfigured = true;
-						HUHNPController.lock2.notifyAll();
+						synchronized (Controller.lock2) {
+						Controller.isConfigured = true;
+						Controller.lock2.notifyAll();
 						}
 					}
 				}
@@ -42,8 +42,8 @@ public class HUHNPInterpreter {
 		
 		
 		if (data.contains("AT,SENDED")) {
-			synchronized (HUHNPController.lock2) {
-				HUHNPController.lock2.notifyAll();
+			synchronized (Controller.lock2) {
+				Controller.lock2.notifyAll();
 			}
 		}
 
@@ -52,20 +52,20 @@ public class HUHNPInterpreter {
 			String lastSender = data.substring(3, 7);
 			String incomingStringMessage = data.substring(11);
 			try {
-				HUHNPMessage message = HUHNPMessage.parseToHUHNPMessage(incomingStringMessage);
+				Message message = Message.parseToHUHNPMessage(incomingStringMessage);
 				System.out.println("[Received: " + lastSender + "] " + incomingStringMessage);
 
 				// decide whether this node needs to handle the incoming input
-				if ((message.getDestinationAddress().equals(HUHNPController.address)
-						|| message.getDestinationAddress().equals(HUHNPController.BROADCAST_ADDRESS))
+				if ((message.getDestinationAddress().equals(Controller.address)
+						|| message.getDestinationAddress().equals(Controller.BROADCAST_ADDRESS))
 								&& hasNotBeenForwardedBefore(message)) {
 
 					/*----------------------------------------- COORDINATOR Role----------------------------------- */
-					if (HUHNPController.isCoordinator) {
+					if (Controller.isCoordinator) {
 
 						if (data.contains("ALIV")) {
 //							if (!hasNotBeenForwardedBefore(message)) {
-								HUHNPController.sender.sendNetworkReset();
+								Controller.sender.sendNetworkReset();
 								coordinatorNRST();
 								
 //							}
@@ -73,16 +73,16 @@ public class HUHNPInterpreter {
 
 						//
 						if (data.contains("CDIS")) {
-							HUHNPController.sender.sendCoordinatorKeepAlive();
+							Controller.sender.sendCoordinatorKeepAlive();
 						}
 						if (data.contains("ADDR")) {
 							String address = AddressManager.generateNextFreePermanentAddress();
-							HUHNPController.sender.sendAddress(message.getSourceAddress(), message.getMessageId(),
+							Controller.sender.sendAddress(message.getSourceAddress(), message.getMessageId(),
 									address);
 						}
 
 						if (data.contains("AACK")) {
-							HUHNPController.addressRegister.add(message.getSourceAddress());
+							Controller.addressRegister.add(message.getSourceAddress());
 						}
 
 						if (data.contains("NRST")) {
@@ -91,33 +91,33 @@ public class HUHNPInterpreter {
 						}
 					}
 					/*----------------------------------------- CLIENT Role ----------------------------------- */
-					if (!HUHNPController.isCoordinator) {
+					if (!Controller.isCoordinator) {
 
 						// see if this message is especially for this node
-						if (data.contains(HUHNPController.address)) {
+						if (data.contains(Controller.address)) {
 
 							// this needs to set the address to the payload
-							if (data.contains("ADDR") && !HUHNPController.addressIsPermanent) {
-								HUHNPController.sender.setPermanentAddress(message.getPayload());
-								HUHNPController.sender.sendAAcknowledgement(message);
-								HUHNPController.forwardingIsActive = true;
+							if (data.contains("ADDR") && !Controller.addressIsPermanent) {
+								Controller.sender.setPermanentAddress(message.getPayload());
+								Controller.sender.sendAAcknowledgement(message);
+								Controller.forwardingIsActive = true;
 							}
 						}
 
 						/* Handle all messages broadcasted */
 						if (data.contains("ALIV")) {
-							HUHNPController.coordinatorIsPresent = true;
-							if (!HUHNPController.addressIsPermanent) {
-								HUHNPController.sender.requestAddress();
+							Controller.coordinatorIsPresent = true;
+							if (!Controller.addressIsPermanent) {
+								Controller.sender.requestAddress();
 							}
 						}
 
 						//
 						if (data.contains("NRST")) {
-							HUHNPController.addressIsPermanent = false;
-							HUHNPController.sender.setTemporaryAddress();
-							HUHNPController.addressRegister = null;
-							HUHNPController.forwardingIsActive = false;
+							Controller.addressIsPermanent = false;
+							Controller.sender.setTemporaryAddress();
+							Controller.addressRegister = null;
+							Controller.forwardingIsActive = false;
 
 						}
 
@@ -125,9 +125,9 @@ public class HUHNPInterpreter {
 				}
 				// decide whether the node needs to forward the incoming message
 
-				if (HUHNPController.forwardingIsActive && !(message.getDestinationAddress().equals(HUHNPController.address))) {
+				if (Controller.forwardingIsActive && !(message.getDestinationAddress().equals(Controller.address))) {
 					if (isNotExpired(message) && hasNotBeenForwardedBefore(message) && !coordinatorIsMissing()) {
-						HUHNPController.sender.sendMessage(incrementHopsByOne(message));
+						Controller.sender.sendMessage(incrementHopsByOne(message));
 					}
 				}
 			} catch (Exception e) {
@@ -138,33 +138,33 @@ public class HUHNPInterpreter {
 
 	}
 
-	private HUHNPMessage incrementHopsByOne(HUHNPMessage message) {
+	private Message incrementHopsByOne(Message message) {
 		Integer hopsPlusOne = Integer.parseInt(message.getCurrentHops()) + 1;
 		String newHops = ((hopsPlusOne < 10) ? "0" : "") + hopsPlusOne;
-		HUHNPMessage newMessage = message;
+		Message newMessage = message;
 		newMessage.setCurrentHops(newHops);
 		return newMessage;
 
 	}
 
-	private boolean hasNotBeenForwardedBefore(HUHNPMessage message) {
-		return HUHNPController.forwardedMessageBuffer.contains(message) ? false : true;
+	private boolean hasNotBeenForwardedBefore(Message message) {
+		return Controller.forwardedMessageBuffer.contains(message) ? false : true;
 	}
 
-	private boolean isNotExpired(HUHNPMessage message) {
+	private boolean isNotExpired(Message message) {
 		return (message.getTimeToLive().compareTo(message.getCurrentHops()) > 0) ? true : false;
 	}
 
 	private boolean coordinatorIsMissing() {
-		return (!HUHNPController.coordinatorIsPresent && !HUHNPController.isCoordinator) ? true : false;
+		return (!Controller.coordinatorIsPresent && !Controller.isCoordinator) ? true : false;
 	}
 	
 	private void coordinatorNRST() {
-		HUHNPController.addressIsPermanent = false;
-		HUHNPController.isCoordinator = false;
-		HUHNPController.sender.setTemporaryAddress();
-		HUHNPController.addressRegister = null;
-		HUHNPController.forwardingIsActive = false;
+		Controller.addressIsPermanent = false;
+		Controller.isCoordinator = false;
+		Controller.sender.setTemporaryAddress();
+		Controller.addressRegister = null;
+		Controller.forwardingIsActive = false;
 		AddressManager.nextFreeAddress = AddressManager.permanentAddressesLowerBound;
 	}
 	

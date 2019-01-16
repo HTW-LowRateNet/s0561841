@@ -9,20 +9,20 @@ import static java.util.concurrent.TimeUnit.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 
-public class ForwardedAndSentMessagesBuffer {
+public class MessageBuffer {
 
 	public static final int INTERVALL_IN_MINUTES = 1;
 
-	public Map<LocalDateTime, HUHNPMessage> forwardedMessages = new HashMap<>();
+	public Map<LocalDateTime, Message> forwardedMessages = new HashMap<>();
 	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-	public ForwardedAndSentMessagesBuffer() {
+	public MessageBuffer() {
 		scheduler.scheduleAtFixedRate(cleanUpTask, INTERVALL_IN_MINUTES, INTERVALL_IN_MINUTES, MINUTES);
 	}
 
-	public boolean contains(HUHNPMessage message) {
+	public boolean contains(Message message) {
 		if (!forwardedMessages.isEmpty()) {
-			for (Entry<LocalDateTime, HUHNPMessage> entry : forwardedMessages.entrySet()) {
+			for (Entry<LocalDateTime, Message> entry : forwardedMessages.entrySet()) {
 				if (entry.getValue().getMessageId().equals(message.getMessageId())
 						&& entry.getValue().getDestinationAddress().equals(message.getDestinationAddress())
 						&& entry.getValue().getSourceAddress().equals(message.getSourceAddress())) {
@@ -34,7 +34,7 @@ public class ForwardedAndSentMessagesBuffer {
 		return false;
 	}
 
-	public void addForwardedMessage(HUHNPMessage message) {
+	public void addForwardedMessage(Message message) {
 		forwardedMessages.put(LocalDateTime.now(), message);
 	}
 
@@ -42,7 +42,7 @@ public class ForwardedAndSentMessagesBuffer {
 		public void run() {
 			if (!forwardedMessages.isEmpty()) {
 				int counter = 0;
-				for (Entry<LocalDateTime, HUHNPMessage> entry : forwardedMessages.entrySet()) {
+				for (Entry<LocalDateTime, Message> entry : forwardedMessages.entrySet()) {
 					if (entry.getKey().plusMinutes(INTERVALL_IN_MINUTES).isBefore(LocalDateTime.now())) {
 						counter++;
 						forwardedMessages.remove(entry.getKey());
