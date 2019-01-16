@@ -1,11 +1,6 @@
 package de.htw.ai.hagen.TMS;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Queue;
-import java.util.Random;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import com.pi4j.io.serial.Serial;
 
 /**
@@ -24,14 +19,12 @@ public class Sender {
 	private final static String BROADCAST_ADDRESS = "FFFF";
 	private final static String DEFAULT_NUMBER_OF_HOPS = "06";
 
-	
-
 	public Sender(Serial serial) {
 		this.serial = serial;
 	}
 
 	/**
-	 * method to send and forward HUHNP messages
+	 * method to send and forward messages
 	 * 
 	 * @param message
 	 */
@@ -40,6 +33,58 @@ public class Sender {
 		Thread sendingMessage = new Thread(new SenderRunnable(message));
 		sendingMessage.start();
 
+	}
+
+	/** method to discover the PAN coordinator */
+	protected synchronized void discoverPANCoordinator() {
+		Message coordinatorDiscoveryMessage = new Message(MessageCode.CDIS, generateMessageID(), Controller.address,
+				COORDINATOR_ADDRESS, "Looking for the coordinator.");
+		sendMessage(coordinatorDiscoveryMessage);
+	}
+
+	/** Method to let network know this node is the coordinator */
+	protected synchronized void sendCoordinatorKeepAlive() {
+		Message imTheCaptainMessage = new Message(MessageCode.ALIV, generateMessageID(), Controller.address,
+				BROADCAST_ADDRESS, "They call me the coordinator.");
+		sendMessage(imTheCaptainMessage);
+	}
+
+	/**
+	 * Method to make an ADDR request to the coordinator
+	 */
+	public void requestAddress() {
+		Message newAddressMessage = new Message(MessageCode.ADDR, generateMessageID(), Controller.address,
+				COORDINATOR_ADDRESS, "");
+		sendMessage(newAddressMessage);
+	}
+
+	/**
+	 * Method that allows this node to send an address in Response to an ADDR
+	 * request
+	 * 
+	 * @param receiver
+	 * @param messageId
+	 * @param address
+	 */
+	public void sendAddress(String receiver, String messageId, String address) {
+		Message newAddressMessage = new Message(MessageCode.ADDR, messageId, Controller.address, receiver, address);
+		sendMessage(newAddressMessage);
+	}
+
+	/**
+	 * Method to send an AACK to the coordinator
+	 */
+	public void sendAAcknowledgement(Message message) {
+		Message newAACKMessage = new Message(MessageCode.AACK, generateMessageID(), Controller.address,
+				message.getSourceAddress(), message.getPayload());
+		sendMessage(newAACKMessage);
+	}
+
+	/** Method to let the network know it needs to reset itself */
+	public void sendNetworkReset() {
+		Message networkResetMessage = new Message(MessageCode.NRST, generateMessageID(), Controller.address,
+				BROADCAST_ADDRESS, "Network restart needed");
+		sendMessage(networkResetMessage);
 	}
 
 	/**
@@ -57,62 +102,8 @@ public class Sender {
 			Controller.isConfigured = false;
 			this.sendATCommand("AT+ADDR=" + address);
 		}
-			return address;
-		
+		return address;
 	};
-
-	/** method to discover the PAN coordinator */
-	protected synchronized void discoverPANCoordinator() {
-		Message coordinatorDiscoveryMessage = new Message(MessageCode.CDIS, generateMessageID(),
-				Controller.address, COORDINATOR_ADDRESS,
-				"Looking for the coordinator.");
-		sendMessage(coordinatorDiscoveryMessage);
-	}
-
-	/** Method to let network know this node is the coordinator */
-	protected synchronized void sendCoordinatorKeepAlive() {
-		Message imTheCaptainMessage = new Message(MessageCode.ALIV, generateMessageID(),
-				Controller.address, BROADCAST_ADDRESS, "They call me the coordinator.");
-		sendMessage(imTheCaptainMessage);
-	}
-
-	/** Method to let the network know it needs to reset itself */
-	public void sendNetworkReset() {
-		Message networkResetMessage = new Message(MessageCode.NRST, generateMessageID(),
-				Controller.address, BROADCAST_ADDRESS, "Network restart needed");
-		sendMessage(networkResetMessage);
-	};
-	
-	/**
-	 * Method that allows this node to send an address in Response to an ADDR request
-	 * @param receiver
-	 * @param messageId
-	 * @param address
-	 */
-	public void sendAddress(String receiver, String messageId, String address) {
-		Message newAddressMessage = new Message(MessageCode.ADDR, messageId,
-				Controller.address, receiver, address);
-		sendMessage(newAddressMessage);
-	}
-	
-	/**
-	 * Method to make an ADDR request to the coordinator
-	 */
-	public void requestAddress() {
-		Message newAddressMessage = new Message(MessageCode.ADDR, generateMessageID(),
-				Controller.address, COORDINATOR_ADDRESS, "");
-		sendMessage(newAddressMessage);
-	}
-
-	/**
-	 * Method to send an AACK to the coordinator
-	 */
-	public void sendAAcknowledgement(Message message) {
-		Message newAACKMessage = new Message(MessageCode.AACK, generateMessageID(),
-				Controller.address, message.getSourceAddress(), message.getPayload());
-		sendMessage(newAACKMessage);
-		
-	}
 
 	/** method to send AT commands directly to the module */
 	protected void sendATCommand(String command) {
@@ -137,7 +128,7 @@ public class Sender {
 	// TODO Generate smarter message ID
 	private String generateMessageID() {
 		messageId += 1;
-		return "id-"+messageId;
+		return "id-" + messageId;
 	}
 
 	/**
@@ -151,7 +142,7 @@ public class Sender {
 			Controller.lock1.wait();
 		}
 		this.setTemporaryAddress();
-		
+
 	};
 
 	/**
@@ -165,12 +156,10 @@ public class Sender {
 		synchronized (Controller.lock1) {
 			address = AddressManager.createTemporaryNodeAddress();
 			System.out.println("Set own temporary address: " + address);
-			Controller.address=address;
+			Controller.address = address;
 			this.sendATCommand("AT+ADDR=" + address);
 			return address;
 		}
 	}
-
-
 
 }

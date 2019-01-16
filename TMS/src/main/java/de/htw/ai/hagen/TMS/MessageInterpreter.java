@@ -64,14 +64,10 @@ public class MessageInterpreter {
 					if (Controller.isCoordinator) {
 
 						if (data.contains("ALIV")) {
-//							if (!hasNotBeenForwardedBefore(message)) {
 								Controller.sender.sendNetworkReset();
 								coordinatorNRST();
-								
-//							}
 						}
 
-						//
 						if (data.contains("CDIS")) {
 							Controller.sender.sendCoordinatorKeepAlive();
 						}
@@ -87,9 +83,9 @@ public class MessageInterpreter {
 
 						if (data.contains("NRST")) {
 							coordinatorNRST();
-
 						}
 					}
+					
 					/*----------------------------------------- CLIENT Role ----------------------------------- */
 					if (!Controller.isCoordinator) {
 
