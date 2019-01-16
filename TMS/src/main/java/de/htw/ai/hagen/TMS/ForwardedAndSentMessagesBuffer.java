@@ -40,7 +40,6 @@ public class ForwardedAndSentMessagesBuffer {
 
 	private final Runnable cleanUpTask = new Runnable() {
 		public void run() {
-			System.out.println("[Scheduled Task] starting cleanup");
 			if (!forwardedMessages.isEmpty()) {
 				int counter = 0;
 				for (Entry<LocalDateTime, HUHNPMessage> entry : forwardedMessages.entrySet()) {
@@ -49,7 +48,6 @@ public class ForwardedAndSentMessagesBuffer {
 						forwardedMessages.remove(entry.getKey());
 					}
 				}
-				System.out.println("[Scheduled Task] Removed " + counter + " forwarded messages from buffer.");
 			}
 		}
 	};
