@@ -45,7 +45,7 @@ public class Sender {
 	/** Method to let network know this node is the coordinator */
 	protected synchronized void sendCoordinatorKeepAlive() {
 		Message imTheCaptainMessage = new Message(MessageCode.ALIV, generateMessageID(), Controller.address,
-				BROADCAST_ADDRESS, "They call me the coordinator.");
+				BROADCAST_ADDRESS, "Call me daddy. (Hagen is coordinator)");
 		sendMessage(imTheCaptainMessage);
 	}
 
@@ -76,7 +76,7 @@ public class Sender {
 	 */
 	public void sendAAcknowledgement(Message message) {
 		Message newAACKMessage = new Message(MessageCode.AACK, generateMessageID(), Controller.address,
-				message.getSourceAddress(), message.getPayload());
+				message.getSourceAddress(), "Thx, bye.");
 		sendMessage(newAACKMessage);
 	}
 
