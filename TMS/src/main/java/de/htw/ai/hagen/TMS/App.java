@@ -17,7 +17,7 @@ public class App {
 		Controller controller = new Controller();
 		
 		try {
-			controller.runHUHNPController(args);
+			controller.runController(args);
 		} catch (InterruptedException | IOException e) {
 			System.out.println("Something went wrong: ");
 			e.printStackTrace();

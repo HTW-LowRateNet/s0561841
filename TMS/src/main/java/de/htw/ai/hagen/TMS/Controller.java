@@ -42,7 +42,7 @@ public class Controller {
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	public void runHUHNPController(String[] args) throws InterruptedException, IOException {
+	public void runController(String[] args) throws InterruptedException, IOException {
 
 		console.title("<-- HUHN-P Project -->", "Technik Mobiler Systeme");
 
@@ -58,7 +58,7 @@ public class Controller {
 		serialListener.start();
 		userInputListener.start();
 
-		// start initial congfiguration of module and set own temporary address
+		// start initial configuration of module and set own temporary address
 		sender.configureModule();
 
 		// continuous loop to keep the program running until the user terminates the
